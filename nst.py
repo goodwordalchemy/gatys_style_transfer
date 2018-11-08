@@ -14,7 +14,7 @@ from tensorflow.python.keras import losses
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import backend as K
 
-NUM_ITERS = 10
+NUM_ITERS = 1000
 
 IMG_DIR = 'images'
 
