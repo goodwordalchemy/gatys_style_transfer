@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import time
-import IPython.display
 from PIL import Image
 
 import matplotlib.pyplot as plt
