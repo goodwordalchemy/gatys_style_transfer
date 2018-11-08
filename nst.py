@@ -312,7 +312,7 @@ def main():
 
     output_im = Image.fromarray(best)
 
-    output_im.save('output.jpg')
+    output_im.save(os.path.join(IMG_DIR, 'output.jpg'))
 
 
 if __name__ == '__main__':
