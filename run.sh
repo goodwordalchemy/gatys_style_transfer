@@ -9,7 +9,7 @@ until (gcloud compute scp $REMOTE_SCRIPTS_PATH/run-script-on-remote-server.sh ns
     sleep 10
 done
 
-gcloud compute scp --recuse images nst:~/nst_images 
+gcloud compute scp --recurse images nst:~/nst_images 
 
 $REMOTE_SCRIPTS_PATH/ssh_flow.expect
 
