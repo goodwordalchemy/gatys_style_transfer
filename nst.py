@@ -15,6 +15,8 @@ from tensorflow.python.keras import losses
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import backend as K
 
+NUM_ITERS = 10
+
 IMG_DIR = 'images'
 
 content_path = os.path.join(IMG_DIR, 'content.jpg')
@@ -307,7 +309,7 @@ def run_style_transfer(content_path,
 
 def main():
     best, best_loss = run_style_transfer(content_path, 
-                                         style_path, num_iterations=1000)
+                                         style_path, num_iterations=NUM_ITERS)
 
     output_im = Image.fromarray(best)
 
