@@ -1,1 +1,2 @@
-python -m hello
+#!/bin/bash
+python3 -m hello
