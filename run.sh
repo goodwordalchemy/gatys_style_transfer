@@ -15,4 +15,4 @@ $REMOTE_SCRIPTS_PATH/ssh_flow.expect
 
 gcloud compute scp nst:~/gatys_style_transfer/images/content.jpg images
 
-gcloud compute instances delete nst
+echo "y" | gcloud compute instances delete nst

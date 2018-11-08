@@ -1,20 +1,13 @@
 #!/usr/bin/expect -f
 
 set nvidia_key [exec cat nvidia-ngc-api-key.txt]
-spawn gcloud compute ssh nst -- -L 8080:localhost:8080
+spawn gcloud compute ssh nst -- -L 8080:localhost:8080 'bash -s' < ./remote_scripts/run-script-on-remote-server.sh
 
-expect {
-    "(Y/n)" { send -- "Y\r" }
-    "Please enter your NGC APIkey to login to the NGC Registry:\r" { send -- "$nvidia_key\r" }
-}
+expect "(Y/n)" 
+send  "Y\r"
 
-expect {
-    "Please enter your NGC APIkey to login to the NGC Registry:\r" { send -- "$nvidia_key\r" }
-    "$ " { send -- "echo 'api key already entered'\r" }
-}
-
-expect "$ "
-send "./run-script-on-remote-server.sh\r"
+expect "Please enter your NGC APIkey to login to the NGC Registry:\r" 
+send "$nvidia_key\r"
 
 expect "$ "
 send "exit"
