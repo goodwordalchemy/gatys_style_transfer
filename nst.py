@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import time
+import IPython.display
 from PIL import Image
 
 import matplotlib.pyplot as plt
@@ -14,12 +15,10 @@ from tensorflow.python.keras import losses
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import backend as K
 
-img_dir = '/tmp/nst'
-if not os.path.exists(img_dir):
-    os.makedirs(img_dir)
+IMG_DIR = 'images'
 
-content_path = '/tmp/nst/Green_Sea_Turtle_grazing_seagrass.jpg'
-style_path = '/tmp/nst/The_Great_Wave_off_Kanagawa.jpg'
+content_path = os.path.join(IMG_DIR, 'content.jpg')
+style_path = os.path.join(IMG_DIR, 'style.jpg')
 
 mpl.rcParams['figure.figsize'] = (10,10)
 mpl.rcParams['axes.grid'] = False
@@ -27,6 +26,20 @@ mpl.rcParams['axes.grid'] = False
 
 tf.enable_eager_execution()
 print("Eager execution: {}".format(tf.executing_eagerly()))
+
+# Content layer where will pull our feature maps
+content_layers = ['block5_conv2']
+
+# Style layer we are interested in
+style_layers = ['block1_conv1',
+                'block2_conv1',
+                'block3_conv1',
+                'block4_conv1',
+                'block5_conv1'
+               ]
+
+num_content_layers = len(content_layers)
+num_style_layers = len(style_layers)
 
 
 def load_img(path_to_img):
@@ -54,19 +67,6 @@ def imshow(img, title=None):
         plt.imshow(out)
 
 
-# plt.figure(figsize=(10,10))
-
-# content = load_img(content_path).astype('uint8')
-# style = load_img(style_path).astype('uint8')
-
-# plt.subplot(1, 2, 1)
-# imshow(content, 'Content Image')
-
-# plt.subplot(1, 2, 2)
-# imshow(style, 'Style Image')
-# plt.show()
-
-
 def load_and_process_img(path_to_img):
     img = load_img(path_to_img)
     img = tf.keras.applications.vgg19.preprocess_input(img)
@@ -90,21 +90,6 @@ def deprocess_img(processed_img):
 
     x = np.clip(x, 0, 255).astype('uint8')
     return x
-
-
-# Content layer where will pull our feature maps
-content_layers = ['block5_conv2']
-
-# Style layer we are interested in
-style_layers = ['block1_conv1',
-                'block2_conv1',
-                'block3_conv1',
-                'block4_conv1',
-                'block5_conv1'
-               ]
-
-num_content_layers = len(content_layers)
-num_style_layers = len(style_layers)
 
 
 def get_model():
@@ -243,8 +228,6 @@ def compute_grads(cfg):
     return tape.gradient(total_loss, cfg['init_image']), all_loss
 
 
-import IPython.display
-
 def run_style_transfer(content_path,
                        style_path,
                        num_iterations=1000,
@@ -311,12 +294,6 @@ def run_style_transfer(content_path,
         if i % display_interval== 0:
             start_time = time.time()
 
-            # Use the .numpy() method to get the concrete numpy array
-            plot_img = init_image.numpy()
-            plot_img = deprocess_img(plot_img)
-            imgs.append(plot_img)
-            IPython.display.clear_output(wait=True)
-            IPython.display.display_png(Image.fromarray(plot_img))
             print('Iteration: {}'.format(i))
             print('Total loss: {:.4e}, '
                 'style loss: {:.4e}, '
@@ -325,128 +302,17 @@ def run_style_transfer(content_path,
 
     print('Total time: {:.4f}s'.format(time.time() - global_start))
 
-    IPython.display.clear_output(wait=True)
-    plt.figure(figsize=(14,4))
-    for i,img in enumerate(imgs):
-        plt.subplot(num_rows,num_cols,i+1)
-        plt.imshow(img)
-        plt.xticks([])
-        plt.yticks([])
-
     return best_img, best_loss
 
 
-best, best_loss = run_style_transfer(content_path, 
-                                     style_path, num_iterations=1000)
+def main():
+    best, best_loss = run_style_transfer(content_path, 
+                                         style_path, num_iterations=1000)
+
+    output_im = Image.fromarray(best)
+
+    output_im.save('output.jpg')
 
 
-
-Image.fromarray(best)
-
-
-def show_results(best_img, content_path, style_path, show_large_final=True):
-  plt.figure(figsize=(10, 5))
-  content = load_img(content_path) 
-  style = load_img(style_path)
-
-  plt.subplot(1, 2, 1)
-  imshow(content, 'Content Image')
-
-  plt.subplot(1, 2, 2)
-  imshow(style, 'Style Image')
-
-  if show_large_final: 
-    plt.figure(figsize=(10, 10))
-
-    plt.imshow(best_img)
-    plt.title('Output Image')
-    plt.show()
-
-
-show_results(best, content_path, style_path)
-
-
-
-best_starry_night, best_loss = run_style_transfer('/tmp/nst/Tuebingen_Neckarfront.jpg',
-                                                  '/tmp/nst/1024px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg')
-
-
-# In[ ]:
-
-
-show_results(best_starry_night, '/tmp/nst/Tuebingen_Neckarfront.jpg',
-             '/tmp/nst/1024px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg')
-
-
-# ### Pillars of Creation + Tuebingen
-
-# In[ ]:
-
-
-best_poc_tubingen, best_loss = run_style_transfer('/tmp/nst/Tuebingen_Neckarfront.jpg', 
-                                                  '/tmp/nst/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg')
-
-
-# In[ ]:
-
-
-show_results(best_poc_tubingen, 
-             '/tmp/nst/Tuebingen_Neckarfront.jpg',
-             '/tmp/nst/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg')
-
-
-# ### Kandinsky Composition 7 + Tuebingen
-
-# In[ ]:
-
-
-best_kandinsky_tubingen, best_loss = run_style_transfer('/tmp/nst/Tuebingen_Neckarfront.jpg', 
-                                                  '/tmp/nst/Vassily_Kandinsky,_1913_-_Composition_7.jpg')
-
-
-# In[ ]:
-
-
-show_results(best_kandinsky_tubingen, 
-             '/tmp/nst/Tuebingen_Neckarfront.jpg',
-             '/tmp/nst/Vassily_Kandinsky,_1913_-_Composition_7.jpg')
-
-
-# ### Pillars of Creation + Sea Turtle
-
-# In[ ]:
-
-
-best_poc_turtle, best_loss = run_style_transfer('/tmp/nst/Green_Sea_Turtle_grazing_seagrass.jpg', 
-                                                  '/tmp/nst/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg')
-
-
-# In[ ]:
-
-
-show_results(best_poc_turtle, 
-             '/tmp/nst/Green_Sea_Turtle_grazing_seagrass.jpg',
-             '/tmp/nst/Pillars_of_creation_2014_HST_WFC3-UVIS_full-res_denoised.jpg')
-
-
-# ## Key Takeaways
-# 
-# ### What we covered:
-# 
-# * We built several different loss functions and used backpropagation to transform our input image in order to minimize these losses
-#   * In order to do this we had to load in a **pretrained model** and use its learned feature maps to describe the content and style representation of our images.
-#     * Our main loss functions were primarily computing the distance in terms of these different representations
-# * We implemented this with a custom model and **eager execution**
-#   * We built our custom model with the Functional API 
-#   * Eager execution allows us to dynamically work with tensors, using a natural python control flow
-#   * We manipulated tensors directly, which makes debugging and working with tensors easier. 
-# * We iteratively updated our image by applying our optimizers update rules using **tf.gradient**. The optimizer minimized a given loss with respect to our input image. 
-
-# 
-# **[Image of Tuebingen](https://commons.wikimedia.org/wiki/File:Tuebingen_Neckarfront.jpg)** 
-# Photo By: Andreas Praefcke [GFDL (http://www.gnu.org/copyleft/fdl.html) or CC BY 3.0  (https://creativecommons.org/licenses/by/3.0)], from Wikimedia Commons
-# 
-# **[Image of Green Sea Turtle](https://commons.wikimedia.org/wiki/File:Green_Sea_Turtle_grazing_seagrass.jpg)**
-# By P.Lindgren [CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0)], from Wikimedia Commons
-# 
-# 
+if __name__ == '__main__':
+    main()
