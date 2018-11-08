@@ -13,4 +13,5 @@ expect "@nst:~\$ $"
 set timeout -1
 send "./run-script-on-remote-server.sh\r"
 
-expect eof
+expect "@nst:~\$ $"
+send "exit\r"
